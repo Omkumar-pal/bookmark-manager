@@ -1,0 +1,31 @@
+{
+  "name": "bookmark-manager",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "gendb": "bunx prisma migrate dev",
+    "db:studio": "bunx prisma studio",
+    "lint": "eslint src/ tests/",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "sanity": "bun run lint && bun run typecheck && bun test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
+    "eslint": "^10.9.1",
+    "prisma": "^8.0.0-rc.10",
+    "typescript": "5.8.3",
+    "typescript-eslint": "^8.68.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.10.0",
+    "graphql": "^17.0.2",
+    "graphql-yoga": "^5.22.0"
+  }
+}
