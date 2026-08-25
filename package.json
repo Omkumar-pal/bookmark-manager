@@ -19,12 +19,12 @@
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.68.0",
     "eslint": "^10.9.1",
-    "prisma": "^8.0.0-rc.10",
+    "prisma": "^6.4.0",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.68.0"
   },
   "dependencies": {
-    "@prisma/client": "^7.10.0",
+    "@prisma/client": "^6.4.0",
     "graphql": "^17.0.2",
     "graphql-yoga": "^5.22.0"
   }
