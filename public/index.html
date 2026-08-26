@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Manager — Visual GraphQL Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Bookmarks</span>
+        </div>
+        <span class="graphql-badge">GraphQL</span>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Views</div>
+        <button class="nav-item active" id="btn-all-bookmarks" onclick="selectFolder(null)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>All Bookmarks</span>
+          <span class="badge" id="total-bookmarks-count">0</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title-row">
+          <span class="sidebar-title">Folders</span>
+          <button class="btn-icon" onclick="openCreateFolderModal()" title="New Folder">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+        <div id="folders-list" class="folders-list">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="/graphql" target="_blank" class="graphiql-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Open GraphiQL</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search bookmarks by title..." 
+            oninput="handleSearch(this.value)"
+          />
+          <button id="search-clear-btn" class="search-clear" onclick="clearSearch()" style="display: none;">✕</button>
+        </div>
+
+        <div class="top-actions">
+          <button class="btn btn-primary" onclick="openCreateBookmarkModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add Bookmark</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- View Header -->
+      <section class="view-header">
+        <div>
+          <h1 id="view-title">All Bookmarks</h1>
+          <p id="view-subtitle" class="view-subtitle">Showing all saved bookmarks</p>
+        </div>
+        <div class="view-stats" id="view-stats"></div>
+      </section>
+
+      <!-- Bookmarks Grid -->
+      <div id="bookmarks-container" class="bookmarks-grid">
+        <!-- Bookmark cards rendered here -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="empty-state" style="display: none;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <h3>No bookmarks found</h3>
+        <p id="empty-state-msg">Start by creating your first bookmark.</p>
+        <button class="btn btn-primary" onclick="openCreateBookmarkModal()">Add Bookmark</button>
+      </div>
+
+      <!-- Pagination Bar -->
+      <footer class="pagination-bar" id="pagination-bar">
+        <div class="pagination-info" id="pagination-info">Page 1</div>
+        <div class="pagination-controls">
+          <button class="btn btn-secondary" id="btn-prev-page" onclick="prevPage()" disabled>
+            ← Previous
+          </button>
+          <button class="btn btn-secondary" id="btn-next-page" onclick="nextPage()" disabled>
+            Next →
+          </button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- Create Folder Modal -->
+  <div id="modal-folder" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-folder')">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Create New Folder</h2>
+        <button class="btn-close" onclick="closeModal('modal-folder')">✕</button>
+      </div>
+      <form id="form-create-folder" onsubmit="submitCreateFolder(event)">
+        <div class="form-group">
+          <label for="folder-name-input">Folder Name</label>
+          <input type="text" id="folder-name-input" placeholder="e.g. Design Inspiration, Work, DevOps" required />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-folder')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Folder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create/Edit Bookmark Modal -->
+  <div id="modal-bookmark" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-bookmark')">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-bookmark-title">Add Bookmark</h2>
+        <button class="btn-close" onclick="closeModal('modal-bookmark')">✕</button>
+      </div>
+      <form id="form-bookmark" onsubmit="submitBookmarkForm(event)">
+        <input type="hidden" id="bookmark-edit-id" />
+        <div class="form-group">
+          <label for="bm-title">Title</label>
+          <input type="text" id="bm-title" placeholder="e.g. GraphQL Documentation" required />
+        </div>
+        <div class="form-group">
+          <label for="bm-url">URL</label>
+          <input type="url" id="bm-url" placeholder="https://example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="bm-tags">Tags (comma separated)</label>
+          <input type="text" id="bm-tags" placeholder="e.g. api, documentation, tech" />
+        </div>
+        <div class="form-group" id="bm-folder-group">
+          <label for="bm-folder">Folder</label>
+          <select id="bm-folder" required>
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-bookmark')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-bookmark">Save Bookmark</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Move Bookmark Modal -->
+  <div id="modal-move" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-move')">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Move Bookmark to Folder</h2>
+        <button class="btn-close" onclick="closeModal('modal-move')">✕</button>
+      </div>
+      <form id="form-move" onsubmit="submitMoveBookmark(event)">
+        <input type="hidden" id="move-bm-id" />
+        <p class="modal-description" id="move-bm-title"></p>
+        <div class="form-group">
+          <label for="move-target-folder">Select Destination Folder</label>
+          <select id="move-target-folder" required>
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-move')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Move Bookmark</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
