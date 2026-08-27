@@ -264,7 +264,7 @@ Pagination follows the standard Relay Connection specification:
 
 ## Bonus Features
 
-1. **Sanity Script (`bun run sanity`)**: Executes ESLint, TypeScript `tsc --noEmit`, and the full 22-test automated test suite in a single command.
+1. **Sanity Script (`bun run sanity`)**: Executes ESLint, TypeScript `tsc --noEmit`, and the full 28-test automated test suite in a single command.
 2. **Containerized Service (`Dockerfile`)**: Production-ready multi-stage Bun container image for running the GraphQL API service independently.
 3. **Continuous Integration (`.github/workflows/ci.yml`)**: Automated GitHub Actions workflow running linting, typechecking, and tests on PRs and pushes to `main`.
 
@@ -290,3 +290,4 @@ To keep within the required scope, intentional trade-offs were made. In a large-
    - Deploy PgBouncer in front of PostgreSQL to handle high-concurrency connection pooling efficiently.
 6. **API Evolution & Versioning**:
    - Use GraphQL `@deprecated` directives on fields when evolving the schema without breaking existing client integrations.
+7. **Cursor `id` validation**: currently checked for non-empty only, not strict UUID format — malformed IDs fail gracefully via Prisma's own not-found handling rather than duplicating validation at the cursor layer.
