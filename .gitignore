@@ -7,8 +7,7 @@ dist/
 # Environment
 .env
 
-# Prisma
-prisma/migrations/**/migration_lock.toml
+# Prisma (migration_lock.toml is intentionally committed per Prisma docs)
 
 # OS
 .DS_Store
