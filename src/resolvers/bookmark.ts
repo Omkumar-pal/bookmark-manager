@@ -1,7 +1,7 @@
 import type { Bookmark, Prisma } from "@prisma/client";
 import type { GraphQLContext } from "../types/context.js";
 import { validateTitle, validateUrl } from "../lib/validation.js";
-import { notFoundError } from "../lib/errors.js";
+import { notFoundError, badUserInputError } from "../lib/errors.js";
 
 // ─── Cursor Helpers ───────────────────────────────────────────────
 
@@ -14,18 +14,35 @@ function encodeCursor(bookmark: Bookmark): string {
   return Buffer.from(raw).toString("base64");
 }
 
+const BASE64_REGEX = /^[A-Za-z0-9+/]+={0,2}$/;
+
 /**
  * Decodes an opaque cursor back into createdAt + id.
+ * Note: `id` is validated as non-empty but not strictly checked against UUID
+ * format here — malformed IDs are safely handled downstream by Prisma's
+ * findMany/findUnique, which return empty/null rather than throwing.
+ * Throws GraphQLError (BAD_USER_INPUT) for structurally invalid cursors.
  */
 function decodeCursor(cursor: string): { createdAt: Date; id: string } {
+  if (!BASE64_REGEX.test(cursor) || cursor.length % 4 !== 0) {
+    throw badUserInputError("Invalid cursor format");
+  }
+
   const raw = Buffer.from(cursor, "base64").toString("utf-8");
+
   const separatorIndex = raw.indexOf("::");
   if (separatorIndex === -1) {
-    throw new Error("Invalid cursor format");
+    throw badUserInputError("Invalid cursor format");
   }
-  const createdAtStr = raw.substring(0, separatorIndex);
-  const id = raw.substring(separatorIndex + 2);
-  return { createdAt: new Date(createdAtStr), id };
+  const createdAtStr = raw.substring(0, separatorIndex).trim();
+  const id = raw.substring(separatorIndex + 2).trim();
+
+  const createdAt = new Date(createdAtStr);
+  if (!createdAtStr || !id || isNaN(createdAt.getTime())) {
+    throw badUserInputError("Invalid cursor format");
+  }
+
+  return { createdAt, id };
 }
 
 // ─── Argument Types ───────────────────────────────────────────────
@@ -65,7 +82,7 @@ interface MoveBookmarkArgs {
 export const bookmarkResolvers = {
   Query: {
     bookmarks: async (_parent: unknown, args: BookmarksArgs, context: GraphQLContext) => {
-      const limit = args.take ?? 20; // Default page size
+      const limit = Math.min(Math.max(args.take ?? 20, 1), 50); // Clamp between 1 and 50
 
       // Build the WHERE clause with optional filters
       const where: Prisma.BookmarkWhereInput = {};

@@ -8,8 +8,24 @@ on:
 
 jobs:
   check:
-    name: Lint & Typecheck
+    name: Lint, Typecheck & Tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bookmark_user
+          POSTGRES_PASSWORD: bookmark_pass
+          POSTGRES_DB: bookmark_manager
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://bookmark_user:bookmark_pass@localhost:5432/bookmark_manager
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,8 +41,14 @@ jobs:
       - name: Run Prisma Client generation
         run: bunx prisma generate
 
+      - name: Run Prisma migrations
+        run: bunx prisma migrate deploy
+
       - name: Run ESLint
         run: bun run lint
 
       - name: Run TypeScript typecheck
         run: bun run typecheck
+
+      - name: Run tests (unit + integration)
+        run: bun test
