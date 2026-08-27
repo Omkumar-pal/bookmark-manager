@@ -264,7 +264,7 @@ Pagination follows the standard Relay Connection specification:
 
 ## Bonus Features
 
-1. **Sanity Script (`bun run sanity`)**: Executes ESLint, TypeScript `tsc --noEmit`, and the full 22-test automated test suite in a single command.
+1. **Sanity Script (`bun run sanity`)**: Executes ESLint, TypeScript `tsc --noEmit`, and the full 28-test automated test suite in a single command.
 2. **Containerized Service (`Dockerfile`)**: Production-ready multi-stage Bun container image for running the GraphQL API service independently.
 3. **Continuous Integration (`.github/workflows/ci.yml`)**: Automated GitHub Actions workflow running linting, typechecking, and tests on PRs and pushes to `main`.
 
